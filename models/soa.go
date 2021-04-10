@@ -1,27 +1,41 @@
-package bind
+package models
 
-import (
-	"github.com/StackExchange/dnscontrol/v3/models"
-)
+import "fmt"
 
-func makeSoa(origin string, defSoa *SoaInfo, existing, desired *models.RecordConfig) (*models.RecordConfig, uint32) {
+// SoaInfo contains the parts of the default SOA settings.
+type SoaInfo struct {
+	Ns      string `json:"master"`
+	Mbox    string `json:"mbox"`
+	Serial  uint32 `json:"serial"`
+	Refresh uint32 `json:"refresh"`
+	Retry   uint32 `json:"retry"`
+	Expire  uint32 `json:"expire"`
+	Minttl  uint32 `json:"minttl"`
+	TTL     uint32 `json:"ttl,omitempty"`
+}
+
+func (s SoaInfo) String() string {
+	return fmt.Sprintf("%s %s %d %d %d %d %d %d", s.Ns, s.Mbox, s.Serial, s.Refresh, s.Retry, s.Expire, s.Minttl, s.TTL)
+}
+
+func MakeSoa(origin string, defSoa *SoaInfo, existing, desired *RecordConfig) (*RecordConfig, uint32) {
 	// Create a SOA record.  Take data from desired, existing, default,
 	// or hardcoded defaults.
-	soaRec := models.RecordConfig{}
+	soaRec := RecordConfig{}
 	soaRec.SetLabel("@", origin)
 
 	if defSoa == nil {
 		defSoa = &SoaInfo{}
 	}
 	if existing == nil {
-		existing = &models.RecordConfig{}
+		existing = &RecordConfig{}
 	}
 
 	if desired == nil {
-		desired = &models.RecordConfig{}
+		desired = &RecordConfig{}
 	}
 
-	soaRec.TTL = firstNonZero(desired.TTL, defSoa.TTL, existing.TTL, models.DefaultTTL)
+	soaRec.TTL = firstNonZero(desired.TTL, defSoa.TTL, existing.TTL, DefaultTTL)
 	soaRec.SetTargetSOA(
 		firstNonNull(desired.GetTargetField(), existing.GetTargetField(), defSoa.Ns, "DEFAULT_NOT_SET."),
 		firstNonNull(desired.SoaMbox, existing.SoaMbox, defSoa.Mbox, "DEFAULT_NOT_SET."),
