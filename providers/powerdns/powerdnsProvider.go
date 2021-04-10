@@ -46,6 +46,7 @@ type powerdnsProvider struct {
 	APIUrl         string
 	ServerName     string
 	DefaultNS      []string `json:"default_ns"`
+	DefaultSoa     models.SoaInfo  `json:"default_soa"`
 	DNSSecOnCreate bool     `json:"dnssec_on_create"`
 
 	nameservers []*models.Nameserver
@@ -127,9 +128,6 @@ func (api *powerdnsProvider) GetZoneRecords(domain string) (models.Records, erro
 	curRecords := models.Records{}
 	// loop over grouped records by type, called RRSet
 	for _, rrset := range zone.ResourceRecordSets {
-		if rrset.Type == "SOA" {
-			continue
-		}
 		// loop over single records of this group and create records
 		for _, pdnsRecord := range rrset.Records {
 			r, err := toRecordConfig(domain, pdnsRecord, rrset.TTL, rrset.Name, rrset.Type)
@@ -153,6 +151,42 @@ func (api *powerdnsProvider) GetDomainCorrections(dc *models.DomainConfig) ([]*m
 		return nil, err
 	}
 
+	// Find the SOA records; use them to make or update the desired SOA.
+	var foundSoa *models.RecordConfig
+	for _, r := range curRecords {
+		if r.Type == "SOA" && r.Name == "@" {
+			foundSoa = r
+			break
+		}
+	}
+	var desiredSoa *models.RecordConfig
+	// Look up SOA from config
+	for _, r := range dc.Records {
+		if r.Type == "SOA" && r.Name == "@" {
+			desiredSoa = r
+			break
+		}
+	}
+
+	defaultSoa := &models.RecordConfig{}
+	defaultSoa.SetTargetSOA(
+		api.DefaultSoa.Ns,
+		api.DefaultSoa.Mbox,
+		0,
+		api.DefaultSoa.Refresh,
+		api.DefaultSoa.Retry,
+		api.DefaultSoa.Expire,
+		api.DefaultSoa.Minttl)
+	// PowerDNS allows dropping the SOA record - force default if no SOA record present
+	if foundSoa == nil {
+		foundSoa = defaultSoa
+	}
+	soaRec, _ := models.MakeSoa(dc.Name, &api.DefaultSoa, foundSoa, desiredSoa)
+	if desiredSoa == nil {
+		dc.Records = append(dc.Records, soaRec)
+	} else {
+		*desiredSoa = *soaRec
+	}
 	// post-process records
 	dc.Punycode()
 	models.PostProcessRecords(curRecords)
@@ -258,6 +292,8 @@ func toRecordConfig(domain string, r zones.Record, ttl int, name string, rtype s
 		return rc, rc.SetTargetSRVString(content)
 	case "NAPTR":
 		return rc, rc.SetTargetNAPTRString(content)
+	case "SOA":
+		return rc, rc.SetTargetSOAString(content)
 	default:
 		return rc, rc.PopulateFromString(rtype, content, domain)
 	}
