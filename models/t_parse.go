@@ -29,12 +29,14 @@ func (r *RecordConfig) PopulateFromString(rtype, contents, origin string) error 
 			return fmt.Errorf("invalid IP in AAAA record: %s", contents)
 		}
 		return r.SetTargetIP(ip) // Reformat to canonical form.
-	case "ALIAS", "ANAME", "CNAME", "NS", "PTR":
+	case "ALIAS", "ANAME", "CNAME", "NS", "PTR", "DNAME", "DHCID":
 		return r.SetTarget(contents)
 	case "CAA":
 		return r.SetTargetCAAString(contents)
 	case "DS":
 		return r.SetTargetDSString(contents)
+	case "HINFO":
+		return r.SetTargetHINFOString(contents)
 	case "MX":
 		return r.SetTargetMXString(contents)
 	case "NAPTR":

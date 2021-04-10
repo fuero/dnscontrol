@@ -69,6 +69,12 @@ const (
 
 	// CanUseSOA indicates the provider supports full management of a zone's SOA record
 	CanUseSOA
+	// CanUseDNAME indicates the provider can handle DNAME records
+	CanUseDNAME
+	// CanUseDHCID indicates the provider can handle DHCID records
+	CanUseDHCID
+	// CanUseHINFO indicates the provider can handle HINFO records
+	CanUseHINFO
 )
 
 var providerCapabilities = map[string]map[Capability]bool{}

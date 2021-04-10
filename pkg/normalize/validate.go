@@ -3,6 +3,7 @@ package normalize
 import (
 	"fmt"
 	"net"
+	"regexp"
 	"strings"
 
 	"github.com/StackExchange/dnscontrol/v3/models"
@@ -11,6 +12,8 @@ import (
 	"github.com/miekg/dns"
 	"github.com/miekg/dns/dnsutil"
 )
+
+const PATTERN_BASE64 string = "^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$"
 
 // Returns false if target does not validate.
 func checkIPv4(label string) error {
@@ -53,7 +56,10 @@ func validateRecordTypes(rec *models.RecordConfig, domain string, pTypes []strin
 		"AAAA":             true,
 		"CNAME":            true,
 		"CAA":              true,
+		"DHCID":            true,
+		"DNAME":            true,
 		"DS":               true,
+		"HINFO":            true,
 		"TLSA":             true,
 		"IMPORT_TRANSFORM": false,
 		"MX":               true,
@@ -147,6 +153,24 @@ func checkSoa(expire uint32, minttl uint32, refresh uint32, retry uint32, serial
 	return nil
 }
 
+func checkBase64(text string) error {
+	found, _ := regexp.MatchString(PATTERN_BASE64, text)
+	if !found {
+		return fmt.Errorf("Must be a base64 string")
+	}
+	return nil
+}
+
+func checkHInfo(cpu string, os string) error {
+	if len(cpu) == 0 {
+		return fmt.Errorf("CPU must not be null")
+	}
+	if len(os) == 0 {
+		return fmt.Errorf("OS must not be null")
+	}
+	return nil
+}
+
 // checkTargets returns true if rec.Target is valid for the rec.Type.
 func checkTargets(rec *models.RecordConfig, domain string) (errs []error) {
 	label := rec.GetLabel()
@@ -170,6 +194,12 @@ func checkTargets(rec *models.RecordConfig, domain string) (errs []error) {
 		if label == "@" {
 			check(fmt.Errorf("cannot create CNAME record for bare domain"))
 		}
+	case "DHCID":
+		check(checkBase64(target))
+	case "DNAME":
+		check(checkTarget(target))
+	case "HINFO":
+		check(checkHInfo(rec.HinfoCpu, rec.HinfoOs))
 	case "MX":
 		check(checkTarget(target))
 	case "NS":
@@ -547,6 +577,9 @@ var providerCapabilityChecks = []pairTypeCapability{
 	capabilityCheck("ALIAS", providers.CanUseAlias),
 	capabilityCheck("AUTODNSSEC", providers.CanAutoDNSSEC),
 	capabilityCheck("CAA", providers.CanUseCAA),
+	capabilityCheck("DHCID", providers.CanUseDHCID),
+	capabilityCheck("DNAME", providers.CanUseDNAME),
+	capabilityCheck("HINFO", providers.CanUseHINFO),
 	capabilityCheck("NAPTR", providers.CanUseNAPTR),
 	capabilityCheck("PTR", providers.CanUsePTR),
 	capabilityCheck("R53_ALIAS", providers.CanUseRoute53Alias),

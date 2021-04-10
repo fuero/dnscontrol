@@ -312,7 +312,24 @@ var CAA = recordBuilder('CAA', {
 
 // CNAME(name,target, recordModifiers...)
 var CNAME = recordBuilder('CNAME');
+// DNAME(name,target, recordModifiers...)
+var DNAME = recordBuilder('DNAME');
+// DHCID(name,target, recordModifiers...)
+var DHCID = recordBuilder('DHCID');
 
+// HINFO(name,cpu,os, recordModifiers...)
+var HINFO = recordBuilder('HINFO', {
+  args: [
+    ['name', _.isString],
+    ['cpu',  _.isString],
+    ['os',   _.isString]
+  ],
+  transform: function(record, args, modifiers) {
+    record.name = args.name;
+    record.hinfocpu = args.cpu;
+    record.hinfoos = args.os;
+  },
+});
 // DS(name, keytag, algorithm, digestype, digest)
 var DS = recordBuilder("DS", {
     args: [

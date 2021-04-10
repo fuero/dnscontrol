@@ -42,7 +42,9 @@ func generateFeatureMatrix() error {
 			{"R53_ALIAS", "Provider supports Route 53 limited ALIAS"},
 			{"AZURE_ALIAS", "Provider supports Azure DNS limited ALIAS"},
 			{"DS", "Provider supports adding DS records"},
-
+            {"DNAME", "Provider supports adding DNAME records"},
+            {"DHCID", "Provider supports adding DHCID records"},
+            {"HINFO", "Provider supports adding HINFO records"},
 			{"dual host", "This provider is recommended for use in 'dual hosting' scenarios. Usually this means the provider allows full control over the apex NS records"},
 			{"create-domains", "This means the provider can automatically create domains that do not currently exist on your account. The 'dnscontrol create-domains' command will initialize any missing domains"},
 			{"no_purge", "indicates you can use NO_PURGE macro to prevent deleting records not managed by dnscontrol. A few providers that generate the entire zone from scratch have a problem implementing this."},
@@ -90,6 +92,9 @@ func generateFeatureMatrix() error {
 		setCap("TLSA", providers.CanUseTLSA)
 		setCap("get-zones", providers.CanGetZones)
 		setCap("DS", providers.CanUseDS)
+		setCap("DNAME", providers.CanUseDNAME)
+		setCap("DHCID", providers.CanUseDHCID)
+		setCap("HINFO", providers.CanUseHINFO)
 		setDoc("dual host", providers.DocDualHost, false)
 		setDoc("create-domains", providers.DocCreateDomains, true)
 

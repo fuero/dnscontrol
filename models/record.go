@@ -21,6 +21,9 @@ import (
 //     ANAME  // Technically not an official rtype yet.
 //     CAA
 //     CNAME
+// 	   DHCID
+//     DNAME
+//     HINFO
 //     MX
 //     NAPTR
 //     NS
@@ -93,6 +96,8 @@ type RecordConfig struct {
 	DsAlgorithm      uint8             `json:"dsalgorithm,omitempty"`
 	DsDigestType     uint8             `json:"dsdigesttype,omitempty"`
 	DsDigest         string            `json:"dsdigest,omitempty"`
+    HinfoCpu         string            `json:"hinfocpu,omitempty"`
+    HinfoOs          string            `json:"hinfoos,omitempty"`
 	NaptrOrder       uint16            `json:"naptrorder,omitempty"`
 	NaptrPreference  uint16            `json:"naptrpreference,omitempty"`
 	NaptrFlags       string            `json:"naptrflags,omitempty"`
@@ -154,6 +159,8 @@ func (rc *RecordConfig) UnmarshalJSON(b []byte) error {
 		DsAlgorithm      uint8             `json:"dsalgorithm,omitempty"`
 		DsDigestType     uint8             `json:"dsdigesttype,omitempty"`
 		DsDigest         string            `json:"dsdigest,omitempty"`
+		HinfoCpu         string            `json:"hinfocpu,omitempty"`
+		HinfoOs          string            `json:"hinfoos,omitempty"`
 		NaptrOrder       uint16            `json:"naptrorder,omitempty"`
 		NaptrPreference  uint16            `json:"naptrpreference,omitempty"`
 		NaptrFlags       string            `json:"naptrflags,omitempty"`
@@ -346,11 +353,18 @@ func (rc *RecordConfig) ToRR() dns.RR {
 		rr.(*dns.AAAA).AAAA = rc.GetTargetIP()
 	case dns.TypeCNAME:
 		rr.(*dns.CNAME).Target = rc.GetTargetField()
+    case dns.TypeDHCID:
+		rr.(*dns.DHCID).Digest = rc.GetTargetField()
+    case dns.TypeDNAME:
+		rr.(*dns.DNAME).Target = rc.GetTargetField()
 	case dns.TypeDS:
 		rr.(*dns.DS).Algorithm = rc.DsAlgorithm
 		rr.(*dns.DS).DigestType = rc.DsDigestType
 		rr.(*dns.DS).Digest = rc.DsDigest
 		rr.(*dns.DS).KeyTag = rc.DsKeyTag
+    case dns.TypeHINFO:
+		rr.(*dns.HINFO).Cpu = rc.HinfoCpu
+		rr.(*dns.HINFO).Os = rc.HinfoOs
 	case dns.TypePTR:
 		rr.(*dns.PTR).Ptr = rc.GetTargetField()
 	case dns.TypeNAPTR:

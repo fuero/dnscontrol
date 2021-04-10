@@ -50,3 +50,25 @@ func (rc *RecordConfig) SetTargetDSString(s string) error {
 	}
 	return rc.SetTargetDSStrings(part[0], part[1], part[2], part[3])
 }
+
+func (rc *RecordConfig) SetTargetHINFO(cpu string, os string) error {
+    rc.HinfoOs = os
+    rc.HinfoCpu = cpu
+
+    if rc.Type == "" {
+		rc.Type = "HINFO"
+    }
+    if rc.Type != "HINFO" {
+		panic("assertion failed: SetTargetHINFO called when .Type is not HINFO")
+    }
+
+    return nil
+}
+
+func (rc *RecordConfig) SetTargetHINFOString(s string) error {
+	tokens := strings.Split(s, " ")
+	if len(tokens) != 2 {
+		return errors.Errorf("HINFO needs 2 values, CPU and OS")
+	}
+	return rc.SetTargetHINFO(tokens[0], tokens[1])
+}

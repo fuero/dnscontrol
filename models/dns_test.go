@@ -34,6 +34,58 @@ func TestRR(t *testing.T) {
 		t.Errorf("RR expected (%#v) got (%#v)\n", expected, found)
 	}
 
+    experiment = RecordConfig{
+            Type:         "CNAME",
+            Name:         "foo",
+            NameFQDN:     "foo.example.com",
+            target:       "bar.example.com",
+            TTL:          0,
+            MxPreference: 0,
+    }
+    expected = "foo.example.com.\t300\tIN\tCNAME\tbar.example.com"
+    found = experiment.ToRR().String()
+    if found != expected {
+            t.Errorf("RR expected (%#v) got (%#v)\n", expected, found)
+    }
+    experiment = RecordConfig{
+            Type:         "DHCID",
+            Name:         "@",
+            target:       "===",
+            TTL:          300,
+    }
+    expected = ".\t300\tIN\tDHCID\t==="
+    found = experiment.ToRR().String()
+    if found != expected {
+            t.Errorf("RR expected (%#v) got (%#v)\n", expected, found)
+    }
+    experiment = RecordConfig{
+            Type:         "DNAME",
+            Name:         "foo",
+            NameFQDN:     "foo.example.com",
+            target:       "bar.example.com",
+            TTL:          0,
+            MxPreference: 0,
+    }
+    expected = "foo.example.com.\t300\tIN\tDNAME\tbar.example.com"
+    found = experiment.ToRR().String()
+    if found != expected {
+            t.Errorf("RR expected (%#v) got (%#v)\n", expected, found)
+    }
+    experiment = RecordConfig{
+            Type:         "HINFO",
+            Name:         "foo",
+            NameFQDN:     "foo.example.com",
+            HinfoOs:      "Windows",
+            HinfoCpu:     "Intel",
+            TTL:          0,
+            MxPreference: 0,
+    }
+    expected = "foo.example.com.\t300\tIN\tHINFO\t\"Intel\" \"Windows\""
+    found = experiment.ToRR().String()
+    if found != expected {
+            t.Errorf("RR expected (%#v) got (%#v)\n", expected, found)
+    }
+
 	experiment = RecordConfig{
 		Type:             "TLSA",
 		Name:             "@",

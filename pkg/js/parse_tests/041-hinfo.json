@@ -1,0 +1,20 @@
+{
+  "registrars": [],
+  "dns_providers": [],
+  "domains": [
+    {
+      "name": "foo.com",
+      "registrar": "none",
+      "dnsProviders": {},
+      "records": [
+        {
+          "type": "HINFO",
+          "name": "foo",
+          "hinfocpu": "Intel",
+          "hinfoos": "Windows",
+          "target": ""
+        }
+      ]
+    }
+  ]
+}
