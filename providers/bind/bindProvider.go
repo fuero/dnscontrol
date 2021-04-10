@@ -84,26 +84,10 @@ func init() {
 	providers.RegisterDomainServiceProviderType("BIND", fns, features)
 }
 
-// SoaInfo contains the parts of the default SOA settings.
-type SoaInfo struct {
-	Ns      string `json:"master"`
-	Mbox    string `json:"mbox"`
-	Serial  uint32 `json:"serial"`
-	Refresh uint32 `json:"refresh"`
-	Retry   uint32 `json:"retry"`
-	Expire  uint32 `json:"expire"`
-	Minttl  uint32 `json:"minttl"`
-	TTL     uint32 `json:"ttl,omitempty"`
-}
-
-func (s SoaInfo) String() string {
-	return fmt.Sprintf("%s %s %d %d %d %d %d %d", s.Ns, s.Mbox, s.Serial, s.Refresh, s.Retry, s.Expire, s.Minttl, s.TTL)
-}
-
 // bindProvider is the provider handle for the bindProvider driver.
 type bindProvider struct {
 	DefaultNS      []string `json:"default_ns"`
-	DefaultSoa     SoaInfo  `json:"default_soa"`
+	DefaultSoa     models.SoaInfo  `json:"default_soa"`
 	nameservers    []*models.Nameserver
 	directory      string
 	filenameformat string
@@ -222,7 +206,7 @@ func (c *bindProvider) GetDomainCorrections(dc *models.DomainConfig) ([]*models.
 			break
 		}
 	}
-	soaRec, nextSerial := makeSoa(dc.Name, &c.DefaultSoa, foundSoa, desiredSoa)
+	soaRec, nextSerial := models.MakeSoa(dc.Name, &c.DefaultSoa, foundSoa, desiredSoa)
 	if desiredSoa == nil {
 		dc.Records = append(dc.Records, soaRec)
 		desiredSoa = dc.Records[len(dc.Records)-1]
